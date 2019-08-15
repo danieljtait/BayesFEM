@@ -1,0 +1,15 @@
+Metadata-Version: 2.1
+Name: bayesfem
+Version: 0.0.1
+Summary: Bayes inf. + FEM
+Home-page: https://github.com/danieljtait/bayesfem
+Author: Daniel Tait
+Author-email: tait.djk@gmail.com
+License: UNKNOWN
+Description: # BayesFEM
+        
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Description-Content-Type: text/markdown

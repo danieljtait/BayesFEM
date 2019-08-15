@@ -1,0 +1,10 @@
+README.md
+setup.py
+bayesfem/__init__.py
+bayesfem.egg-info/PKG-INFO
+bayesfem.egg-info/SOURCES.txt
+bayesfem.egg-info/dependency_links.txt
+bayesfem.egg-info/top_level.txt
+bayesfem/mesh/__init__.py
+bayesfem/mesh/mesh.py
+bayesfem/mesh/triangularmesh.py
