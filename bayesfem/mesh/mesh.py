@@ -15,3 +15,8 @@ class Mesh:
     def boundary_nodes(self):
         """ Indices of boundary points. """
         return self._boundary_nodes
+
+    @property
+    def n_elements(self):
+        """ number of elements in the mesh. """
+        return self.elements.shape[0]
