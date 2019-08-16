@@ -3,4 +3,4 @@
 `mod`:bayesfem.fem
 ==================
 """
-from .poisson import Poisson
+from .poisson import (Poisson, LinearSecondOrderElliptic)

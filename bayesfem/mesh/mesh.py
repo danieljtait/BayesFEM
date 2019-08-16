@@ -1,5 +1,7 @@
 class Mesh:
     """ Base mesh class. """
+    def __init__(self, points):
+        self._points = points
 
     @property
     def points(self):
@@ -20,3 +22,7 @@ class Mesh:
     def n_elements(self):
         """ number of elements in the mesh. """
         return self.elements.shape[0]
+
+    @property
+    def element_type(self):
+        return self._element_type
