@@ -4,3 +4,4 @@
 ==================
 """
 from .poisson import (Poisson, LinearSecondOrderElliptic)
+from .femassembler import FEMAssembler

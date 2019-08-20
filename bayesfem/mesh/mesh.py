@@ -26,3 +26,7 @@ class Mesh:
     @property
     def element_type(self):
         return self._element_type
+
+    @property
+    def npoints(self):
+        return self._points.shape[0]

@@ -1,14 +1,22 @@
 import tensorflow as tf
+import numpy as np
 
 __all__ = ['BaseFEM', ]
 
 
 class BaseFEM:
     """ Base FEM object. """
-    def __init__(self, mesh,):
+    def __init__(self, mesh, name=None):
         """ Instatiates a BaseFEM object. """
         self._mesh = mesh
         self._dtype = mesh.points.dtype
+        self._name = name
+        self._batch_shape = ()
+
+    @property
+    def name(self):
+        """ Name of FEM problem. """
+        return self._name
 
     @property
     def mesh(self):
@@ -19,6 +27,10 @@ class BaseFEM:
     def dtype(self):
         """ Common data dtype for the tensors comprising the solver. """
         return self._dtype
+
+    @property
+    def batch_shape(self):
+        return self._batch_shape
 
     def _apply_dirchlet_bound_conditions(self, A, b):
         """
@@ -66,3 +78,13 @@ class BaseFEM:
                          dtype=self.dtype))
 
             return A, b
+
+    def _get_quadrature_nodes(self):
+        if self.mesh.element_type == 'Interval':
+            # quadrature degree = 1
+            quad_degree = 1
+
+            if quad_degree == 1:
+                nodes = self.mesh.points[:-1] + .5*np.diff(self.mesh.points)
+
+                return nodes

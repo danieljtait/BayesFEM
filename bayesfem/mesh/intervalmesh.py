@@ -16,6 +16,6 @@ class IntervalMesh(Mesh):
                                     np.arange(1, self.npoints)])
 
         self._elements = elements
-        self._boundary_nodes = [0, self.n_elements-1]
+        self._boundary_nodes = [0, self.npoints-1]
 
         self._element_type = 'Interval'

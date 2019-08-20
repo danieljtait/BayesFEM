@@ -8,3 +8,4 @@ for PDE models using Finite Element Methods (FEM)
 """
 from . import mesh
 from . import fem
+from . import auglagrangian
