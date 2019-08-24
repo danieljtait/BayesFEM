@@ -11,7 +11,7 @@ class BaseFEM:
         self._mesh = mesh
         self._dtype = mesh.points.dtype
         self._name = name
-        self._batch_shape = ()
+        self._batch_shape = tf.constant([], dtype=tf.int32)
 
     @property
     def name(self):
@@ -52,24 +52,36 @@ class BaseFEM:
         b : Tensor
         """
         with tf.name_scope("ApplyBoundaryConditions") as scope:
-            boundary_inds = [[i, j] for i in self.mesh.boundary_nodes
-                             for j in range(self.mesh.npoints)]
-            updates = tf.zeros(len(boundary_inds), dtype=self.dtype)
 
-            A = tf.tensor_scatter_nd_update(A, boundary_inds, updates)
+            def boundary_correct_stiffness_matrix(A):
+                """ applies the boundary correction to a single stiffness matrix. """
+                boundary_inds = [[i, j] for i in self.mesh.boundary_nodes
+                                 for j in range(self.mesh.npoints)]
+                updates = tf.zeros(len(boundary_inds), dtype=self.dtype)
 
-            # repeat for symmetry
-            boundary_inds = [[j, i] for j in range(self.mesh.npoints)
-                             for i in self.mesh.boundary_nodes]
-            updates = tf.zeros(len(boundary_inds), dtype=self.dtype)
+                A = tf.tensor_scatter_nd_update(A, boundary_inds, updates)
 
-            A = tf.tensor_scatter_nd_update(A, boundary_inds, updates)
+                # repeat for symmetry
+                boundary_inds = [[j, i] for j in range(self.mesh.npoints)
+                                 for i in self.mesh.boundary_nodes]
+                updates = tf.zeros(len(boundary_inds), dtype=self.dtype)
 
-            boundary_inds = [[i, i] for i in self.mesh.boundary_nodes]
+                A = tf.tensor_scatter_nd_update(A, boundary_inds, updates)
 
-            updates = tf.ones(len(boundary_inds), dtype=self.dtype)
+                boundary_inds = [[i, i] for i in self.mesh.boundary_nodes]
 
-            A = tf.tensor_scatter_nd_update(A, boundary_inds, updates)
+                updates = tf.ones(len(boundary_inds), dtype=self.dtype)
+
+                A = tf.tensor_scatter_nd_update(A, boundary_inds, updates)
+
+                return A
+
+            batch_shape = A.shape[:-2]
+            if len(batch_shape) == 0:
+                A = boundary_correct_stiffness_matrix(A)
+
+            else:
+                A = tf.map_fn(boundary_correct_stiffness_matrix, A)
 
             b = tf.tensor_scatter_nd_update(
                 b,

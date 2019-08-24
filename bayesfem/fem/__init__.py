@@ -3,5 +3,7 @@
 `mod`:bayesfem.fem
 ==================
 """
-from .poisson import (Poisson, LinearSecondOrderElliptic)
+from .fem import BaseFEM
+from .poisson import Poisson
+from .linearsecondorderelliptic import LinearSecondOrderElliptic
 from .femassembler import FEMAssembler

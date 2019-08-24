@@ -2,66 +2,24 @@ import tensorflow as tf
 import numpy as np
 
 from .fem import BaseFEM
+from .linearsecondorderelliptic import LinearSecondOrderElliptic
 
 
-class Poisson(BaseFEM):
+class Poisson(LinearSecondOrderElliptic):
 
-    def __init__(self, mesh, source, name='Poisson'):
+    def __init__(self,
+                 source,
+                 mesh,
+                 name='Poisson'):
         """ Instatiates a Poisson FEM solver"""
-        super(Poisson, self).__init__(mesh, name=name)
-
-        self._source = source
 
         def coeff(x):
             return tf.ones([1], self.dtype)
 
-        self._coeff = coeff
-
-    @property
-    def coeff(self):
-        return self._coeff
-
-    @property
-    def source(self):
-        """ Source function for the Poisson problem. """
-        return self._source
-
-    def assemble(self):
-        """ Assembles the stiffness and load matrix. """
-        with tf.name_scope('{}FEMAssemble'.format(self.name)):
-
-            A = tf.zeros((self.mesh.npoints, self.mesh.npoints),
-                         name='stiffness_matrix',
-                         dtype=self.dtype)
-            b = tf.zeros((self.mesh.npoints, ),
-                         name='load_vector',
-                         dtype=self.dtype)
-
-            local_stiffness = local_stiffness_matrix_calculator(self)
-            local_load = local_load_calculator(self)
-
-            for k, row in enumerate(self.mesh.elements):
-                inds = [[i, j] for i in row for j in row]
-
-                local_values = tf.reshape(local_stiffness[k], [-1])
-
-                A = tf.tensor_scatter_nd_add(A,
-                                             inds,
-                                             local_values,
-                                             name='scatter_nd_to_global')
-
-                local_load_values = tf.reshape(local_load[k], [-1])
-                b = tf.tensor_scatter_nd_add(b,
-                                             [[i] for i in row],
-                                             local_load_values)
-
-            return self._apply_dirchlet_bound_conditions(A, b)
-
-    def _get_local_stiffness(self):
-        return local_stiffness_matrix_calculator(self)
+        super(Poisson, self).__init__(coeff, source, mesh, name=name)
 
 
-class LinearSecondOrderElliptic(BaseFEM):
+class LinearSecondOrderElliptic_(BaseFEM):
     """ Linear second order elliptic PDE solver using FEM """
 
     def __init__(self, mesh, name='LinearSecondOrderElliptic'):
