@@ -26,7 +26,7 @@ class LinearSecondOrderElliptic(BaseFEM):
         """ Source function. """
         return self._source
 
-    def assemble(self, coeff=None):
+    def assemble(self, coeff=None, apply_boundary_conditions=True):
         """ Assembles the stiffness and load matrix. """
         with tf.name_scope('{}FEMAssemble'.format(self.name)):
 
@@ -77,7 +77,10 @@ class LinearSecondOrderElliptic(BaseFEM):
                 b = tf.tensor_scatter_nd_add(b,
                                              [[i] for i in row],
                                              local_load_values)
-            return self._apply_dirchlet_bound_conditions(A, b)
+            if apply_boundary_conditions:
+                return self._apply_dirchlet_bound_conditions(A, b)
+            else:
+                return A, b
 
     def _local_stiffness_matrix_calculator(self, coeff):
         return local_stiffness_matrix_calculator(self, coeff)
@@ -112,6 +115,44 @@ def local_stiffness_matrix_calculator(fem, coeff):
         local_stiffness_matrix = (a / interval_lengths)[..., None, None] * E
         return local_stiffness_matrix
 
+    elif fem.mesh.element_type == 'Triangular':
+        """ Two dimensional mesh with triangular elements 
+        
+        The local stiffness matrix is given by 
+        
+            (bar(a) ) * | b1^2 + c1^2   b1b2 + c1c2   b1b3 + c1c3 |
+                        |
+                        |
+        """
+        # get the X and Y corrdinates of each element in the order respecting
+        # self.elements
+        X, Y = fem.mesh.points[fem.mesh.elements].T
+        # compute the gradients of the hat functions
+        b = np.array([
+            Y[1] - Y[2],
+            Y[2] - Y[0],
+            Y[0] - Y[1]]).T / (2.*fem.mesh.element_areas[:, None])
+        c = np.array([
+            X[2] - X[1],
+            X[0] - X[2],
+            X[1] - X[0]]).T / (2.*fem.mesh.element_areas[:, None])
+
+        E = (b[..., None] * b[..., None, :]
+             + c[..., None] * c[..., None, :]) * fem.mesh.element_areas[:, None, None]
+
+        if callable(coeff):
+            a = coeff(fem.mesh.barycenters)
+
+        elif isinstance(coeff, (tf.Tensor, tf.Variable, np.ndarray)):
+            a = coeff
+
+        else:
+            raise ValueError("`fem.coeff` must either be `callable` or "
+                             "else an array of shape `[..., fem.mesh.get_quadrature_nodes().shape`")
+
+        local_stiffness_matrix = a[..., None, None] * E
+        return local_stiffness_matrix
+
 
 def local_load_calculator(fem):
     if fem.mesh.element_type == 'Interval':
@@ -144,3 +185,15 @@ def local_load_calculator(fem):
              gquad(psi1_, a, b)])
 
         return local_load
+
+    elif fem.mesh.element_type == 'Triangular':
+        X, Y = fem.mesh.points[fem.mesh.elements].T
+
+        if callable(fem.source):
+            f = fem.source(X, Y)
+
+        # broadcast f incase it is just a scalar
+        f = tf.transpose(tf.broadcast_to(f, X.shape))
+        f = f * fem.mesh.element_areas[:, None] / 3
+
+        return f
