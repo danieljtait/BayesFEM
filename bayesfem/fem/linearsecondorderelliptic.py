@@ -228,8 +228,8 @@ class LinearSecondOrderElliptic(BasePDEModel):
             source = self.source
         return _local_load_vector_assembler(self, source)
 
-    def _assemble(self, global_scatter=True):
-        a_local_values = self._local_stiffness_matrix_assembler()
+    def _assemble(self, global_scatter=True, coeff=None):
+        a_local_values = self._local_stiffness_matrix_assembler(coeff=coeff)
         b_local_values = self._local_load_vector_assembler()
         # Don't scatter into global matrices
         if not global_scatter:

@@ -117,3 +117,7 @@ class Mesh:
     def interior_node_indices(self):
         """ Indices of nodes in the interior """
         return self._interior_node_indices
+
+    @property
+    def element_dim(self):
+        return self._element_dim

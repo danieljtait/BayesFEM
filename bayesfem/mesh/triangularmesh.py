@@ -53,6 +53,8 @@ class TriangularMesh(Mesh):
         cy = tf.reduce_mean(Y, axis=-1)
         self._barycenters = tf.stack((cx, cy))
 
+        self._element_dim = 3
+
     @staticmethod
     def from_verts_by_matlab(verts, hmax):
         """ Creates a mesh of the polygon defined by verts using the matlab engine

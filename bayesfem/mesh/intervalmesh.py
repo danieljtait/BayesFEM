@@ -22,6 +22,8 @@ class IntervalMesh(Mesh):
 
         self._element_volumes = tf.squeeze(self.nodes[1:] - self.nodes[:-1])
 
+        self._element_dim = 2
+
     def linear_interpolation_operator(self, index_points):
         """ Returns the linear operator that carries out interpolation of the solution at node points.
 
